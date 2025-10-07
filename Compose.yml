@@ -1,0 +1,53 @@
+services:
+  l12dev-nginx:
+    container_name: "l12dev-nginx"
+    build:
+      context: ./docker/nginx
+    depends_on:
+      - l12dev-app
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./src:/src
+      - ./docker/nginx/mkcerts:/etc/ssl/certs
+
+  l12dev-app:
+    container_name: "l12dev-app"
+    build:
+      context: ./docker/php
+    depends_on:
+      - l12dev-mysql
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./src:/src
+      - ./src/vendor:/src/vendor
+      - ./src/node_modules:/src/node_modules
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+      - ./docker/nginx/mkcerts:/etc/ssl/certs
+
+  l12dev-mysql:
+    image: mysql:8.0.37
+    command: --max_allowed_packet=32505856
+    container_name: "l12dev-mysql"
+    volumes:
+      - ./docker/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=l12dev
+    ports:
+      - 3306:3306
+
+  l12dev-redis:
+    image: redis:alpine
+    container_name: "l12dev-redis"
+    ports:
+      - 16379:6379
+
+  l12dev-mail:
+    image: axllent/mailpit:v1.8
+    container_name: l12dev-mailpit
+    ports:
+      - 8025:8025
+      - 1025:1025
