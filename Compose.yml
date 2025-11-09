@@ -51,3 +51,19 @@ services:
     ports:
       - 8025:8025
       - 1025:1025
+
+  l12dev-nextjs:
+    container_name: "l12dev-nextjs"
+    build:
+      context: ./docker/nextjs
+    depends_on:
+      - l12dev-nginx
+    ports:
+      - 3000:3000
+    volumes:
+      - ./src-next:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://l12dev-nginx
