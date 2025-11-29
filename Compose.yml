@@ -1,63 +1,66 @@
 services:
-  l12dev-nginx:
-    container_name: "l12dev-nginx"
+  nginx:
+    container_name: "nginx"
     build:
       context: ./docker/nginx
     depends_on:
-      - l12dev-app
+      - laravel
     ports:
       - 80:80
       - 443:443
+    environment:
+      - LARAVEL_SERVER_NAME=${LARAVEL_SERVER_NAME}
+      - NEXTJS_SERVER_NAME=${NEXTJS_SERVER_NAME}
     volumes:
-      - ./src:/src
+      - ./src-laravel:/src-laravel
       - ./docker/nginx/mkcerts:/etc/ssl/certs
 
-  l12dev-app:
-    container_name: "l12dev-app"
+  laravel:
+    container_name: "laravel"
     build:
       context: ./docker/php
     depends_on:
-      - l12dev-mysql
+      - mysql
     ports:
       - "5173:5173"
     volumes:
-      - ./src:/src
-      - ./src/vendor:/src/vendor
-      - ./src/node_modules:/src/node_modules
+      - ./src-laravel:/src-laravel
+      - ./src-laravel/vendor:/src-laravel/vendor
+      - ./src-laravel/node_modules:/src-laravel/node_modules
       - ./docker/php/php.ini:/usr/local/etc/php/php.ini
       - ./docker/nginx/mkcerts:/etc/ssl/certs
 
-  l12dev-mysql:
+  mysql:
     image: mysql:8.0.37
     command: --max_allowed_packet=32505856
-    container_name: "l12dev-mysql"
+    container_name: "mysql"
     volumes:
       - ./docker/mysql:/var/lib/mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=l12dev
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
     ports:
       - 3306:3306
 
-  l12dev-redis:
+  redis:
     image: redis:alpine
-    container_name: "l12dev-redis"
+    container_name: "redis"
     ports:
       - 16379:6379
 
-  l12dev-mail:
+  mail:
     image: axllent/mailpit:v1.8
-    container_name: l12dev-mailpit
+    container_name: mailpit
     ports:
       - 8025:8025
       - 1025:1025
 
-  l12dev-nextjs:
-    container_name: "l12dev-nextjs"
+  nextjs:
+    container_name: "nextjs"
     build:
       context: ./docker/nextjs
     depends_on:
-      - l12dev-nginx
+      - nginx
     ports:
       - 3000:3000
     volumes:
@@ -65,5 +68,5 @@ services:
       - /app/node_modules
       - /app/.next
     environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://l12dev-nginx
+      - NODE_ENV=${NODE_ENV}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
