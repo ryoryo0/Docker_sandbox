@@ -12,7 +12,7 @@ services:
       - LARAVEL_SERVER_NAME=${LARAVEL_SERVER_NAME}
       - NEXTJS_SERVER_NAME=${NEXTJS_SERVER_NAME}
     volumes:
-      - ./src-laravel:/src-laravel
+      - ./src-laravel:/var/www/src-laravel
       - ./docker/nginx/mkcerts:/etc/ssl/certs
 
   laravel:
@@ -24,9 +24,9 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./src-laravel:/src-laravel
-      - ./src-laravel/vendor:/src-laravel/vendor
-      - ./src-laravel/node_modules:/src-laravel/node_modules
+      - ./src-laravel:/var/www/src-laravel
+      - ./src-laravel/vendor:/var/www/src-laravel/vendor
+      - ./src-laravel/node_modules:/var/www/src-laravel/node_modules
       - ./docker/php/php.ini:/usr/local/etc/php/php.ini
       - ./docker/nginx/mkcerts:/etc/ssl/certs
 
