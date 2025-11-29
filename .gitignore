@@ -4,3 +4,4 @@
 /docker/nginx/mkcerts/*
 
 /src/*
+.env
