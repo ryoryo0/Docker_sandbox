@@ -69,4 +69,5 @@ services:
       - /app/.next
     environment:
       - NODE_ENV=${NODE_ENV}
+      - API_URL=${API_URL}
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
