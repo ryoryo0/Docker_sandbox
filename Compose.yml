@@ -20,6 +20,7 @@ services:
     container_name: "laravel"
     build:
       context: ./docker/php
+    working_dir: /var/www/src-laravel
     depends_on:
       - mysql
     ports:
