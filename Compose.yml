@@ -5,6 +5,7 @@ services:
       context: ./docker/nginx
     depends_on:
       - laravel
+      - nextjs
     ports:
       - 80:80
       - 443:443
@@ -59,8 +60,6 @@ services:
     container_name: "nextjs"
     build:
       context: ./docker/nextjs
-    depends_on:
-      - nginx
     ports:
       - 3000:3000
     volumes:
