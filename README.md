@@ -327,7 +327,7 @@ docker compose exec nextjs npm run build
 | 用途 | URL |
 |---|---|
 | 顧客サイト (Next.js) | `https://nextjs.local` |
-| 管理画面 (Laravel) | `https://laravel12.local/admin` |
+| 管理画面 (Laravel) | `https://laravel12.local/admin/login` |
 | API | `https://laravel12.local/api/v1/products` |
 | メール確認 | `http://localhost:8025` |
 
