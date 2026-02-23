@@ -73,7 +73,7 @@ laravel12/
 │   │   ├── Dockerfile       # Nginx 1.27 コンテナ
 │   │   ├── default.conf.template  # Nginx設定テンプレート
 │   │   ├── docker-entrypoint.sh   # 環境変数で設定を動的生成
-│   │   └── mkcerts/         # SSL自己署名証明書
+│   │   └── mkcerts/         # mkcert で生成したSSL証明書を配置
 │   ├── nextjs/
 │   │   └── Dockerfile       # Node.js 20 Alpine コンテナ
 │   └── mysql/               # MySQL データ永続化ディレクトリ
@@ -237,17 +237,39 @@ DB_PASSWORD=your_password
 SESSION_DRIVER=database
 SESSION_TABLE=admin_sessions
 
-REDIS_HOST=redis
-REDIS_PORT=6379
 ```
 
-### 3. Docker コンテナのビルド・起動
+### 3. SSL証明書の生成（mkcert）
+
+#### mkcert のインストール（初回のみ）
+
+```bash
+brew install mkcert
+mkcert -install   # macOSキーチェーンにCA証明書を登録（ブラウザ警告が出なくなる）
+```
+
+#### 証明書の生成
+
+```bash
+# .env の LARAVEL_SERVER_NAME / NEXTJS_SERVER_NAME に合わせて実行
+mkcert -cert-file docker/nginx/mkcerts/laravel12.local.pem \
+       -key-file  docker/nginx/mkcerts/laravel12.local-key.pem \
+       laravel12.local
+
+mkcert -cert-file docker/nginx/mkcerts/nextjs.local.pem \
+       -key-file  docker/nginx/mkcerts/nextjs.local-key.pem \
+       nextjs.local
+```
+
+> **注意:** ドメインを変更した場合は、ファイル名とコマンド末尾のドメイン引数を合わせて変更してください。
+
+### 4. Docker コンテナのビルド・起動
 
 ```bash
 docker compose -f Compose.yml up --build
 ```
 
-### 4. Laravel 初期化
+### 5. Laravel 初期化
 
 ```bash
 # アプリケーションキー生成
@@ -260,7 +282,7 @@ docker compose exec laravel php artisan migrate
 docker compose exec laravel php artisan db:seed
 ```
 
-### 5. アクセス確認
+### 6. アクセス確認
 
 | 用途 | URL |
 |---|---|
@@ -269,7 +291,7 @@ docker compose exec laravel php artisan db:seed
 | API | `https://laravel12.local/api/v1/products` |
 | メール確認 | `http://localhost:8025` |
 
-> **注意:** 自己署名証明書を使用しているため、ブラウザでセキュリティ警告が表示されます。開発環境では無視して進めてください。
+> **SSL証明書について:** mkcert で生成した証明書は `mkcert -install` 実行済みであればブラウザの警告なしでHTTPSアクセスできます。証明書ファイルが `docker/nginx/mkcerts/` に存在しない状態で起動するとnginxが起動しないため、必ず手順3を先に実施してください。
 
 ---
 
