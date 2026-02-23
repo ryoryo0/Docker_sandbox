@@ -194,14 +194,32 @@ GET /api/v1/products/{id}      商品詳細
 ```
 ※ IPを解放している場合は任意のIPアドレスを指定いただいて問題ございません
 
+- 以下の順にそってgit cloneコマンドを実行すること
+
+```
+# 任意のPJディレクトリを作成してdocker レポジトリを取得
+mkdir xxxxx && cd xxxxxx
+git clone https://github.com/ryoryo0/Docker_sandbox.git .
+
+# dockerレポジトリ配下にlaravel用のディレクトリを作成してレポジトリを取得
+mkdir src-laravel && cd src-laravel 
+git clone https://github.com/ryoryo0/Laravel12_sandbox.git .
+
+# dockerレポジトリ配下にnext.js用のディレクトリを作成してレポジトリを取得
+cd ../ && mkdir src-next && cd src-next
+git clone https://github.com/ryoryo0/nextJs15_sandbox.git .
+cd ../
+```
 
 ### 1. 環境変数の設定
+
+dcokerレポジトリの内部にある.env.exampleファイルをコピーして.envを作成
 
 ```bash
 cp .env.example .env
 ```
 
-`.env` を編集して各値を設定します:
+`.env` に以下を設定する:
 
 ```bash
 # MySQL
@@ -219,11 +237,13 @@ NEXT_PUBLIC_API_URL=https://laravel12.local
 
 ### 2. Laravel 環境変数の設定
 
+laravelレポジトリの内部にある.env.exampleファイルをコピーして.envを作成
+
 ```bash
 cp src-laravel/.env.example src-laravel/.env
 ```
 
-最低限以下を設定:
+以下を設定:
 
 ```bash
 DB_CONNECTION=mysql
@@ -232,10 +252,6 @@ DB_PORT=3306
 DB_DATABASE=database
 DB_USERNAME=root
 DB_PASSWORD=your_password
-
-SESSION_DRIVER=database
-SESSION_TABLE=admin_sessions
-
 ```
 
 ### 3. SSL証明書の生成（mkcert）
@@ -249,8 +265,12 @@ mkcert -install   # macOSキーチェーンにCA証明書を登録（ブラウ�
 
 #### 証明書の生成
 
+dockerレポジトリで以下のコマンドを実行する
+
+
 ```bash
-# .env の LARAVEL_SERVER_NAME / NEXTJS_SERVER_NAME に合わせて実行
+cd docker/nginx && mkdir mkcerts && cd ../../
+
 mkcert -cert-file docker/nginx/mkcerts/laravel12.local.pem \
        -key-file  docker/nginx/mkcerts/laravel12.local-key.pem \
        laravel12.local
@@ -265,21 +285,42 @@ mkcert -cert-file docker/nginx/mkcerts/nextjs.local.pem \
 ### 4. Docker コンテナのビルド・起動
 
 ```bash
-docker compose -f Compose.yml up --build
+docker compose up -d --build
 ```
 
 ### 5. Laravel 初期化
 
 ```bash
+# laravelディレクトリでcomposerコマンド実行
+composer install
+
 # アプリケーションキー生成
 docker compose exec laravel php artisan key:generate
+
+# シンボリックリンクの作成
+docker compose exec laravel  php artisan storage:link
 
 # マイグレーション実行
 docker compose exec laravel php artisan migrate
 
 # (オプション) シーダー実行
 docker compose exec laravel php artisan db:seed
+
+# vite 起動
+docker compose exec laravel bash
+npm run build
 ```
+
+### Next.jsサーバー起動
+
+```bash
+# 開発サーバー起動（Turbopack）
+docker compose exec nextjs npm run dev
+
+# 本番ビルド
+docker compose exec nextjs npm run build
+```
+
 
 ### 6. アクセス確認
 
@@ -290,54 +331,10 @@ docker compose exec laravel php artisan db:seed
 | API | `https://laravel12.local/api/v1/products` |
 | メール確認 | `http://localhost:8025` |
 
-> **SSL証明書について:** mkcert で生成した証明書は `mkcert -install` 実行済みであればブラウザの警告なしでHTTPSアクセスできます。証明書ファイルが `docker/nginx/mkcerts/` に存在しない状態で起動するとnginxが起動しないため、必ず手順3を先に実施してください。
-
 ---
 
 ## 開発コマンド
 
-### Laravel
-
-```bash
-# 開発サーバー起動（artisan serve + queue + Vite を同時起動）
-docker compose exec laravel composer run dev
-
-# テスト実行
-docker compose exec laravel composer run test
-
-# コードフォーマット
-docker compose exec laravel ./vendor/bin/pint
-
-# マイグレーション
-docker compose exec laravel php artisan migrate
-
-# Tinker（REPL）
-docker compose exec laravel php artisan tinker
-```
-
-### Next.js
-
-```bash
-# 開発サーバー起動（Turbopack）
-docker compose exec nextjs npm run dev
-
-# 本番ビルド
-docker compose exec nextjs npm run build
-```
-
-### Docker
-
-```bash
-# コンテナ起動
-docker compose -f Compose.yml up
-
-# コンテナ停止
-docker compose -f Compose.yml down
-
-# ログ確認
-docker compose -f Compose.yml logs -f laravel
-docker compose -f Compose.yml logs -f nginx
-```
 
 ---
 
@@ -347,24 +344,10 @@ docker compose -f Compose.yml logs -f nginx
 |---|---|---|---|
 | `nginx` | nginx:1.27 | 80, 443 | リバースプロキシ / SSL終端 |
 | `laravel` | php:8.3-fpm | 5173 (Vite HMR) | Laravel アプリ / PHP-FPM |
-| `nextjs` | node:20-alpine | 3000 | Next.js アプリ |
+| `nmkdir src-laravel & cd src-laravel mkdir src-laravel & cd src-laravel extjs` | node:20-alpine | 3000 | Next.js アプリ |
 | `mysql` | mysql:8.0.37 | 3306 | データベース |
 | `redis` | redis:alpine | 16379 | キャッシュ / セッション |
 | `mailpit` | mailpit:v1.8 | 8025 (UI), 1025 (SMTP) | 開発用メール |
-
----
-
-## 権限・ロール管理
-
-Spatie Laravel Permission を使用して管理者の権限を管理しています。
-
-```php
-// ロール付与例
-$admin->assignRole('super-admin');
-
-// パーミッション確認例
-$admin->can('manage-products');
-```
 
 ---
 
