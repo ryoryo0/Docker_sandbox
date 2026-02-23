@@ -226,7 +226,6 @@ cp src-laravel/.env.example src-laravel/.env
 最低限以下を設定:
 
 ```bash
-APP_KEY=                          # 後述の artisan コマンドで生成
 DB_CONNECTION=mysql
 DB_HOST=mysql
 DB_PORT=3306
