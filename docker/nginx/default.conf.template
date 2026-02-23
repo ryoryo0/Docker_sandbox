@@ -106,7 +106,8 @@ server {
 # Laravel HTTPS Server（ブラウザアクセス用）
 # ==============================================
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name ${LARAVEL_SERVER_NAME};
 
     root /var/www/src-laravel/public;
@@ -214,7 +215,8 @@ server {
 # Next.js HTTPS Server（リバースプロキシ）
 # ==============================================
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name ${NEXTJS_SERVER_NAME};
 
     # SSL証明書
